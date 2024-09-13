@@ -1,28 +1,21 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const fs = require('fs');
+const {connectMongoDB} = require('./connection')
+const {logResReq} = require('./middleware')
+const userRouter = require('./routes/user');
 const app = express();
-
 const PORT =8000;
 
 //connection
-mongoose.connect('mongodb://localhost:27017/ytnodeJS')
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('Could not connect to MongoDB', err));
-
-
-
-
+connectMongoDB("mongodb://localhost:27017/ytnodeJS").then(()=>{
+    console.log("Connection established")
+});
 
 //MIDDLEWARE -Plugin
 app.use(express.urlencoded({ extended: false}));
+app.use(logResReq("log.txt"));
 
-
-app.use((req, res, next) =>{
-    fs.appendFile("log.txt", `${Date.now()}: ${req.method}: ${req.path}\n`, (err, data) =>{
-        next();
-    })
-})
+//Routes
+app.use('/api/users', userRouter);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
